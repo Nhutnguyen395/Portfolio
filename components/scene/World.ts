@@ -38,11 +38,12 @@ export class World {
             powerPreference: "high-performance",
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Clamped for performance
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.container.appendChild(this.renderer.domElement);
 
-        // 4. Initialize 3D Sphere Lattice
-        this.lattice = new SphereLattice(config.items);
+        // 4. Query GPU Max Anisotropy & Initialize 3D Sphere Lattice
+        const maxAnisotropy = this.renderer.capabilities.getMaxAnisotropy();
+        this.lattice = new SphereLattice(config.items, maxAnisotropy);
         this.scene.add(this.lattice.group);
 
         // 5. Initialize Drag & Hover Physics
@@ -73,12 +74,8 @@ export class World {
     }
 
     private render = (): void => {
-        // Run physics update on each frame
         this.controls.update();
-
-        // Rasterize 3D scene to screen buffer
         this.renderer.render(this.scene, this.camera);
-
         this.animationFrameId = requestAnimationFrame(this.render);
     };
 
@@ -95,20 +92,12 @@ export class World {
         }
     }
 
-    /**
-    * Complete GPU memory release & listener unmounting
-    */
     public dispose(): void {
         this.stop();
-
-        // 1. Remove resize listener
         window.removeEventListener("resize", this.onResizeBound);
-
-        // 2. Dispose controls and lattice
         this.controls.dispose();
         this.lattice.dispose();
 
-        // 3. Clean up WebGL rendering context
         if (this.renderer.domElement && this.renderer.domElement.parentNode) {
             this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
         }

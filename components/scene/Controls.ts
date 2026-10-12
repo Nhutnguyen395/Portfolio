@@ -16,8 +16,8 @@ export class Controls {
     private isDragging = false;
     private prevMouseX = 0;
     private prevMouseY = 0;
-    private velocityX = 0.0012;
-    private velocityY = 0.0018;
+    private velocityX = 0.0007;
+    private velocityY = 0.0014;
     private dragDist = 0;
 
     // Raycaster & Hover State
@@ -130,8 +130,8 @@ export class Controls {
             this.velocityX *= 0.975;
 
             // Keep subtle orbital baseline drift
-            if (Math.abs(this.velocityY) < 0.0008) this.velocityY = 0.0012;
-            if (Math.abs(this.velocityX) < 0.0008) this.velocityX = 0.0005;
+            if (Math.abs(this.velocityY) < 0.0008) this.velocityY = 0.0014;
+            if (Math.abs(this.velocityX) < 0.0008) this.velocityX = 0.0008;
         }
 
         // 2. Raycaster Hover Detection & Micro-Scale Animation

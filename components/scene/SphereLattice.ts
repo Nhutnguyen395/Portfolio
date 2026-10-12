@@ -8,9 +8,11 @@ export class SphereLattice {
     private geometries: THREE.BufferGeometry[] = [];
     private materials: THREE.Material[] = [];
     private textures: THREE.Texture[] = []
+    private maxAnisotropy: number;
 
-    constructor(items: ArchiveItem[]) {
+    constructor(items: ArchiveItem[], maxAnisotropy = 16) {
         this.group = new THREE.Group();
+        this.maxAnisotropy = maxAnisotropy;
         this.initCoreTypography();
         this.initLattice(items);
         this.initGeodesicLines();
@@ -35,10 +37,11 @@ export class SphereLattice {
             ctx.fillText("NHUT NGUYEN", 512, 220);
 
             ctx.font = '400 36px "JetBrains Mono", monospace';
-            ctx.fillText("ARCHIVAL SPHERE // 2026", 512, 290);
+            ctx.fillText("ARCHIVAL WORLD // 2026", 512, 290);
         }
 
         const coreTexture = new THREE.CanvasTexture(canvas);
+        coreTexture.anisotropy = this.maxAnisotropy;
         this.textures.push(coreTexture);
 
         const coreGeo = new THREE.PlaneGeometry(16, 8);
@@ -65,36 +68,43 @@ export class SphereLattice {
     */
     private createCardTexture(item: ArchiveItem): THREE.CanvasTexture {
         const canvas = document.createElement("canvas");
-        canvas.width = 256;
-        canvas.height = 320;
+        canvas.width = 512;
+        canvas.height = 640;
         const ctx = canvas.getContext("2d");
+
+        const pad = 24;
+        const pw = 512 - pad * 2;
+        const ph = 480;
 
         if (ctx) {
             ctx.fillStyle = "#FFFFFF";
-            ctx.fillRect(0, 0, 256, 320);
+            ctx.fillRect(0, 0, 512, 640);
 
             ctx.strokeStyle = "#E2DFD5";
-            ctx.lineWidth = 4;
-            ctx.strokeRect(2, 2, 252, 316);
-
-            const pad = 12;
-            const pw = 256 - pad * 2;
-            const ph = 240;
+            ctx.lineWidth = 6;
+            ctx.strokeRect(4, 4, 504, 540);
 
             ctx.fillStyle = "#EEECE6";
             ctx.fillRect(pad, pad, pw, ph);
 
-            ctx.font = '700 15px "JetBrains Mono", monospace';
+            ctx.font = '700 28px "JetBrains Mono", monospace';
             ctx.fillStyle = "#111111";
             ctx.textAlign = "center";
-            ctx.fillText(item.fileCode, 128, 280);
+            ctx.fillText(item.fileCode, 256, 560);
 
-            ctx.font = '500 11px "JetBrains Mono", monospace';
+            ctx.font = '500 20px "JetBrains Mono", monospace';
             ctx.fillStyle = "#85837B";
-            ctx.fillText(item.title.toUpperCase(), 128, 302);
+            ctx.fillText(item.title.toUpperCase(), 256, 602);
         }
         
         const texture = new THREE.CanvasTexture(canvas);
+        this.textures.push(texture);
+
+        // ANISOTROPIC FILTERING: Keeps grazing angle textures sharp at the sphere edges
+        texture.anisotropy = this.maxAnisotropy;
+        texture.generateMipmaps = true;
+        texture.minFilter = THREE.LinearMipmapLinearFilter;
+        texture.magFilter = THREE.LinearFilter;
         this.textures.push(texture);
 
         const img = new Image();
@@ -102,10 +112,10 @@ export class SphereLattice {
         img.src = item.url;
         img.onload = () => {
             if (ctx) {
-                ctx.drawImage(img, 12, 12, 232, 240);
+                ctx.drawImage(img, pad, pad, pw, ph);
                 ctx.strokeStyle = "rgba(0, 0, 0, 0.06)";
-                ctx.lineWidth = 2;
-                ctx.strokeRect(12, 12, 232, 240);
+                ctx.lineWidth = 4;
+                ctx.strokeRect(pad, pad, pw, ph);
                 texture.needsUpdate = true;
             }
         };
@@ -117,9 +127,9 @@ export class SphereLattice {
     */
     private initLattice(items: ArchiveItem[]): void {
         const totalCards = items.length;
-        const sphereRadius = 10.6;
+        const sphereRadius = 10;
         const phi = Math.PI * (3 - Math.sqrt(5));
-        const cardGeo = new THREE.PlaneGeometry(3.3, 4.0);
+        const cardGeo = new THREE.PlaneGeometry(3.9, 4.6);
         this.geometries.push(cardGeo);
 
         for (let i = 0; i < totalCards; i++){
@@ -130,28 +140,34 @@ export class SphereLattice {
 
             const x = Math.cos(theta) * radiusAtY;
             const z = Math.sin(theta) * radiusAtY;
+            
+            // 2. ONION LAYERING: Apply micro-depth tier offset
+            // Using prime modulus 7 ensures adjacent neighbors never share the same depth layer
+            const layerTier = ((i * 3) % 7) - 3; // Outputs: -3, -2, -1, 0, 1, 2, 3
+            const radialOffset = layerTier * 0.16; // Micro-offset between -0.48 and +0.48
+            const effectiveRadius = sphereRadius + radialOffset;
 
             const pos = new THREE.Vector3(
-                x * sphereRadius,
-                y * sphereRadius,
-                z * sphereRadius
+                x * effectiveRadius,
+                y * effectiveRadius,
+                z * effectiveRadius
             );
 
-            // 2. Instantiate procedural texture and mesh
+            // 3. Instantiate procedural texture and mesh
             const texture = this.createCardTexture(items[i]);
             const cardMat = new THREE.MeshBasicMaterial({
-            map: texture,
-            side: THREE.DoubleSide,
+                map: texture,
+                side: THREE.DoubleSide,
             });
             this.materials.push(cardMat);
 
             const mesh = new THREE.Mesh(cardGeo, cardMat);
             mesh.position.copy(pos);
 
-            // 3. Orient normal facing radially outward from center
+            // 4. Orient normal facing radially outward from center
             mesh.lookAt(pos.clone().multiplyScalar(2));
 
-            // 4. Attach typed payload for Raycaster picking
+            // 5. Attach typed payload for Raycaster picking
             const userData: CardUserData = {
                 item: items[i],
                 originalScale: 1.0,
@@ -176,7 +192,7 @@ export class SphereLattice {
                     this.cardMeshes[j].position
                 );
                 // Connect neighboring nodes within proximate shell distance
-                if (dist < 4.2) {
+                if (dist < 3.8) {
                     linePositions.push(
                         this.cardMeshes[i].position.x,
                         this.cardMeshes[i].position.y,
