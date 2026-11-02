@@ -31,7 +31,7 @@ export default function ArchiveCanvas({ items, onSelectCard }: ArchiveCanvasProp
     return (
         <div
             ref={containerRef}
-            className="absolute inset-0 z-0 cursor-grab active:cursor-grabbing overflow-hidden"
+            className="absolute inset-0 z-0 cursor-grab active:cursor-grabbing overflow-hidden touch-none"
             aria-label="Interactive 3D Archival Sphere"
             role="region"
         />

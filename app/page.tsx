@@ -3,10 +3,12 @@
 
 import dynamic from "next/dynamic";
 import { useState, useCallback } from "react";
+import { TopNav } from "@/components/ui/TopNav";
+import { TelemetryHUD } from "@/components/ui/TelemetryHUD";
 import { ARCHIVE_DATA } from "@/lib/data/archiveData";
-import { ArchiveItem } from "@/lib/types";
+import { ArchiveItem, DrawerType, ModalType } from "@/lib/types";
 
-// Dynamically import Three.js canvas with zero SSR bundle bleed
+// Isolated 3D Canvas
 const ArchiveCanvas = dynamic(
     () => import("@/components/scene/ArchiveCanvas"),
     { ssr: false }
@@ -14,7 +16,9 @@ const ArchiveCanvas = dynamic(
 
 
 export default function HomePage() {
-    const [activeFile, setActiveFile] = useState<ArchiveItem | null>(null);
+    const [, setActiveFile] = useState<ArchiveItem | null>(null);
+    const [, setActiveDrawer] = useState<DrawerType>(null);
+    const [, setActiveModal] = useState<ModalType>(null);
 
     const handleSelectCard = useCallback((item: ArchiveItem) => {
         setActiveFile(item);
@@ -22,18 +26,17 @@ export default function HomePage() {
 
     return (
         <main className="relative w-screen h-screen overflow-hidden">
-            {/* 1. 3D WebGL Spherical Canvas */}
+            {/* 1. Floating Top Navigation */}
+            <TopNav
+                onOpenDrawer={(drawer) => setActiveDrawer(drawer)}
+                onOpenModal={(modal) => setActiveModal(modal)}
+            />
+
+            {/* 2. 3D WebGL Spherical Canvas */}
             <ArchiveCanvas items={ARCHIVE_DATA} onSelectCard={handleSelectCard} />
 
-            {/* 2. Temporary Status Badge verifying selection */}
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-surface/90 backdrop-blur-sm border border-line rounded-full shadow-xs text-xs font-mono">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>
-                        {activeFile ? `INSPECTING: ${activeFile.title} [${activeFile.fileCode}]` : "DRAG TO ORBIT · CLICK CARD TO SELECT"}
-                    </span>
-                </div>
-            </div>
+            {/* 3. Temporary Status Badge verifying selection */}
+            <TelemetryHUD />
         </main>
     );
 }

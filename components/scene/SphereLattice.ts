@@ -7,7 +7,9 @@ export class SphereLattice {
 
     private geometries: THREE.BufferGeometry[] = [];
     private materials: THREE.Material[] = [];
-    private textures: THREE.Texture[] = []
+    private textures: THREE.Texture[] = [];
+    private materialCache = new Map<string, THREE.MeshBasicMaterial>();
+    private disposed = false;
     private maxAnisotropy: number;
 
     constructor(items: ArchiveItem[], maxAnisotropy = 16) {
@@ -19,6 +21,17 @@ export class SphereLattice {
     }
 
     /**
+    * Resolve the real font-family list next/font registered for a CSS variable
+    * (next/font may rename families, so a hard-coded "JetBrains Mono" can silently miss)
+    */
+    private resolveFontFamily(cssVar: string, fallback: string): string {
+        const value = getComputedStyle(document.documentElement)
+            .getPropertyValue(cssVar)
+            .trim();
+        return value ? `${value}, ${fallback}` : fallback;
+    }
+
+    /**
     * 1. INNER 3D CORE TYPOGRAPHY (Visible through card gaps)
     */
     private initCoreTypography(): void {
@@ -26,23 +39,36 @@ export class SphereLattice {
         canvas.width = 1024;
         canvas.height = 512;
         const ctx = canvas.getContext("2d");
-
-        if (ctx) {
-            ctx.fillStyle = "transparent";
-            ctx.fillRect(0, 0, 1024, 512);
-            
-            ctx.font = '800 84px "JetBrains Mono", monospace';
-            ctx.textAlign = "center";
-            ctx.fillStyle = "rgba(17, 17, 17, 0.08)";
-            ctx.fillText("NHUT NGUYEN", 512, 220);
-
-            ctx.font = '400 36px "JetBrains Mono", monospace';
-            ctx.fillText("ARCHIVAL WORLD // 2026", 512, 290);
-        }
+        const mono = this.resolveFontFamily("--font-jetbrains", "monospace");
 
         const coreTexture = new THREE.CanvasTexture(canvas);
         coreTexture.anisotropy = this.maxAnisotropy;
         this.textures.push(coreTexture);
+
+        const draw = () => {
+            if (!ctx) return;
+            ctx.clearRect(0, 0, 1024, 512);
+
+            ctx.font = `800 84px ${mono}`;
+            ctx.textAlign = "center";
+            ctx.fillStyle = "rgba(17, 17, 17, 0.08)";
+            ctx.fillText("NHUT NGUYEN", 512, 220);
+
+            ctx.font = `400 36px ${mono}`;
+            ctx.fillText("ARCHIVAL WORLD // 2026", 512, 290);
+            coreTexture.needsUpdate = true;
+        };
+
+        // Draw immediately, then redraw once the web font has actually loaded
+        draw();
+        Promise.all([
+            document.fonts.load(`800 84px ${mono}`),
+            document.fonts.load(`400 36px ${mono}`),
+        ])
+            .then(() => {
+                if (!this.disposed) draw();
+            })
+            .catch(() => { /* keep fallback rendering */ });
 
         const coreGeo = new THREE.PlaneGeometry(16, 8);
         this.geometries.push(coreGeo);
@@ -64,9 +90,14 @@ export class SphereLattice {
     }
 
     /**
-    * 2. PROCEDURAL CARD TEXTURE FACTORY
+    * 2. PROCEDURAL CARD MATERIAL FACTORY
+    * One texture + material per unique image, shared by every card that shows it
+    * (52 cards / 12 images => 12 textures in VRAM instead of 52)
     */
-    private createCardTexture(item: ArchiveItem): THREE.CanvasTexture {
+    private getCardMaterial(item: ArchiveItem): THREE.MeshBasicMaterial {
+        const cached = this.materialCache.get(item.url);
+        if (cached) return cached;
+
         const canvas = document.createElement("canvas");
         canvas.width = 512;
         canvas.height = 640;
@@ -74,7 +105,7 @@ export class SphereLattice {
 
         const pad = 24;
         const pw = 512 - pad * 2;
-        const ph = 480;
+        const ph = 500;
 
         if (ctx) {
             ctx.fillStyle = "#FFFFFF";
@@ -86,20 +117,9 @@ export class SphereLattice {
 
             ctx.fillStyle = "#EEECE6";
             ctx.fillRect(pad, pad, pw, ph);
-
-            ctx.font = '700 28px "JetBrains Mono", monospace';
-            ctx.fillStyle = "#111111";
-            ctx.textAlign = "center";
-            ctx.fillText(item.fileCode, 256, 560);
-
-            ctx.font = '500 20px "JetBrains Mono", monospace';
-            ctx.fillStyle = "#85837B";
-            ctx.fillText(item.title.toUpperCase(), 256, 602);
         }
-        
-        const texture = new THREE.CanvasTexture(canvas);
-        this.textures.push(texture);
 
+        const texture = new THREE.CanvasTexture(canvas);
         // ANISOTROPIC FILTERING: Keeps grazing angle textures sharp at the sphere edges
         texture.anisotropy = this.maxAnisotropy;
         texture.generateMipmaps = true;
@@ -109,17 +129,24 @@ export class SphereLattice {
 
         const img = new Image();
         img.crossOrigin = "anonymous";
-        img.src = item.url;
         img.onload = () => {
-            if (ctx) {
-                ctx.drawImage(img, pad, pad, pw, ph);
-                ctx.strokeStyle = "rgba(0, 0, 0, 0.06)";
-                ctx.lineWidth = 4;
-                ctx.strokeRect(pad, pad, pw, ph);
-                texture.needsUpdate = true;
-            }
+            // Image may arrive after the scene was torn down (e.g. React StrictMode remount)
+            if (this.disposed || !ctx) return;
+            ctx.drawImage(img, pad, pad, pw, ph);
+            ctx.strokeStyle = "rgba(0, 0, 0, 0.06)";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(pad, pad, pw, ph);
+            texture.needsUpdate = true;
         };
-        return texture;
+        img.src = item.url;
+
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            side: THREE.DoubleSide,
+        });
+        this.materials.push(material);
+        this.materialCache.set(item.url, material);
+        return material;
     }
 
     /**
@@ -153,13 +180,8 @@ export class SphereLattice {
                 z * effectiveRadius
             );
 
-            // 3. Instantiate procedural texture and mesh
-            const texture = this.createCardTexture(items[i]);
-            const cardMat = new THREE.MeshBasicMaterial({
-                map: texture,
-                side: THREE.DoubleSide,
-            });
-            this.materials.push(cardMat);
+            // 3. Instantiate mesh with a shared per-image material
+            const cardMat = this.getCardMaterial(items[i]);
 
             const mesh = new THREE.Mesh(cardGeo, cardMat);
             mesh.position.copy(pos);
@@ -227,6 +249,8 @@ export class SphereLattice {
     * DETERMINISTIC GPU TEARDOWN
     */
     public dispose(): void {
+        this.disposed = true;
+
         // 1. Dispose all textures from VRAM
         this.textures.forEach((t) => t.dispose());
         this.textures = [];
@@ -238,6 +262,7 @@ export class SphereLattice {
         // 3. Dispose all materials
         this.materials.forEach((m) => m.dispose());
         this.materials = [];
+        this.materialCache.clear();
 
         // 4. Clear mesh references
         this.cardMeshes = [];

@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
-@theme {
+@theme inline {
   --color-gallery: #f5f4ee;
   --color-surface: #ffffff;
   --color-ink: #111111;
   --color-muted: #85837b;
   --color-line: #e2dfd5;
 
-  --font-sans: var(--font-sans), sans-serif;
-  --font-mono: var(--font-mono), monospace;
-  --font-serif: var(--font-serif), serif;
+  --font-sans: var(--font-jakarta), sans-serif;
+  --font-mono: var(--font-jetbrains), monospace;
+  --font-serif: var(--font-instrument), serif;
 
   --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }

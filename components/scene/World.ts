@@ -18,6 +18,7 @@ export class World {
     private controls: Controls;
   
     private animationFrameId: number | null = null;
+    private timer = new THREE.Timer();
     private onResizeBound: () => void;
 
     constructor(config: WorldConfig) {
@@ -59,7 +60,8 @@ export class World {
         this.onResizeBound = this.onResize.bind(this);
         window.addEventListener("resize", this.onResizeBound);
 
-        // 7. Start Render Loop
+        // 7. Start Render Loop (timer ignores time spent in a hidden tab)
+        this.timer.connect(document);
         this.start();
     }
 
@@ -73,14 +75,16 @@ export class World {
         this.renderer.setSize(width, height);
     }
 
-    private render = (): void => {
-        this.controls.update();
+    private render = (timestamp?: number): void => {
+        this.timer.update(timestamp);
+        this.controls.update(this.timer.getDelta());
         this.renderer.render(this.scene, this.camera);
         this.animationFrameId = requestAnimationFrame(this.render);
     };
 
     public start(): void {
         if (this.animationFrameId === null) {
+            this.timer.reset(); // so the first frame doesn't jump
             this.render();
         }
     }
@@ -96,6 +100,7 @@ export class World {
         this.stop();
         window.removeEventListener("resize", this.onResizeBound);
         this.controls.dispose();
+        this.timer.dispose();
         this.lattice.dispose();
 
         if (this.renderer.domElement && this.renderer.domElement.parentNode) {
