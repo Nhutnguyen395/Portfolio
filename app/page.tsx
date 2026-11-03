@@ -4,7 +4,6 @@
 import dynamic from "next/dynamic";
 import { useState, useCallback } from "react";
 import { TopNav } from "@/components/ui/TopNav";
-import { TelemetryHUD } from "@/components/ui/TelemetryHUD";
 import { ARCHIVE_DATA } from "@/lib/data/archiveData";
 import { ArchiveItem, DrawerType, ModalType } from "@/lib/types";
 
@@ -26,7 +25,7 @@ export default function HomePage() {
 
     return (
         <main className="relative w-screen h-screen overflow-hidden">
-            {/* 1. Floating Top Navigation */}
+            {/* 1. Minimal top bar: home mark · ~/pages · socials */}
             <TopNav
                 onOpenDrawer={(drawer) => setActiveDrawer(drawer)}
                 onOpenModal={(modal) => setActiveModal(modal)}
@@ -34,9 +33,6 @@ export default function HomePage() {
 
             {/* 2. 3D WebGL Spherical Canvas */}
             <ArchiveCanvas items={ARCHIVE_DATA} onSelectCard={handleSelectCard} />
-
-            {/* 3. Temporary Status Badge verifying selection */}
-            <TelemetryHUD />
         </main>
     );
 }

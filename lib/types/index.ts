@@ -9,6 +9,11 @@ export interface ArchiveItem {
     readonly label: string;
     readonly desc: string;
     readonly status?: string;
+    /** pixel size of the prepared image (= the card's photo area) */
+    readonly width: number;
+    readonly height: number;
+    /** card size tier on the sphere */
+    readonly size: "small" | "medium" | "large";
 }
 
 /**

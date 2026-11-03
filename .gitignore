@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# original full-size photos (sphere copies in public/archive/sphere are committed)
+/archive-originals/
