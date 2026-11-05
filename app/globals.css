@@ -6,6 +6,8 @@
   --color-ink: #111111;
   --color-muted: #85837b;
   --color-line: #e2dfd5;
+  --color-subtle: #4a4842; /* body copy on light backgrounds */
+  --color-label: #6b6960;  /* small labels; passes 4.5:1 on gallery */
 
   --font-sans: var(--font-jakarta), sans-serif;
   --font-mono: var(--font-jetbrains), monospace;

@@ -33,8 +33,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable} ${serif.variable} h-full overflow-hidden`}>
-      <body className="gallery-grid relative flex flex-col justify-between h-screen w-screen selection:bg-neutral-900 selection:text-white select-none overflow-hidden bg-gallery text-ink font-mono antialiased">
+    <html lang="en" className={`${sans.variable} ${mono.variable} ${serif.variable} h-full`}>
+      <body className="gallery-grid relative min-h-screen w-full overflow-x-hidden selection:bg-neutral-900 selection:text-white select-none bg-gallery text-ink font-mono antialiased">
         {children}
       </body>
     </html>
