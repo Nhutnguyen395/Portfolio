@@ -8,10 +8,13 @@
   --color-line: #e2dfd5;
   --color-subtle: #4a4842; /* body copy on light backgrounds */
   --color-label: #6b6960;  /* small labels; passes 4.5:1 on gallery */
+  --color-trail: #2f5d46;  /* forest green accent — Journey page only */
+  --color-trail-soft: #c9d6cc;
 
   --font-sans: var(--font-jakarta), sans-serif;
   --font-mono: var(--font-jetbrains), monospace;
   --font-serif: var(--font-instrument), serif;
+  --font-display: var(--font-gupter), Georgia, serif;
 
   --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }

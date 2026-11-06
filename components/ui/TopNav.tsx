@@ -3,13 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { DrawerType, ModalType } from "@/lib/types";
-
-interface TopNavProps {
-    /** Home page only: open a drawer in place. Elsewhere these items link back home. */
-    onOpenDrawer?: (drawer: Exclude<DrawerType, null>) => void;
-    onOpenModal?: (modal: Exclude<ModalType, null>) => void;
-}
 
 const SOCIALS = [
     { label: "GITHUB", href: "https://github.com/Nhutnguyen395" },
@@ -62,7 +55,7 @@ function PathLink({
     );
 }
 
-export function TopNav({ onOpenDrawer, onOpenModal }: TopNavProps) {
+export function TopNav() {
     const pathname = usePathname();
     const [scrolled, setScrolled] = useState(false);
 
@@ -101,9 +94,8 @@ export function TopNav({ onOpenDrawer, onOpenModal }: TopNavProps) {
                     className="pointer-events-auto col-span-2 row-start-2 md:col-span-1 md:row-start-1 md:col-start-2 flex items-center justify-center gap-6 sm:gap-9"
                 >
                     <PathLink label="ABOUT" href="/about" active={pathname === "/about"} />
-                    <PathLink label="PROJECTS" onClick={onOpenDrawer && (() => onOpenDrawer("projects"))} />
-                    <PathLink label="VAULT" onClick={onOpenDrawer && (() => onOpenDrawer("vault"))} />
-                    <PathLink label="CONTACT" onClick={onOpenModal && (() => onOpenModal("contact"))} />
+                    <PathLink label="PROJECTS" href="/projects" active={pathname === "/projects"} />
+                    <PathLink label="REISE" href="/reise" active={pathname === "/reise"} />
                 </nav>
 
                 {/* Top Right: socials */}

@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { useState, useCallback } from "react";
 import { TopNav } from "@/components/ui/TopNav";
 import { ARCHIVE_DATA } from "@/lib/data/archiveData";
-import { ArchiveItem, DrawerType, ModalType } from "@/lib/types";
+import { ArchiveItem } from "@/lib/types";
 
 // Isolated 3D Canvas
 const ArchiveCanvas = dynamic(
@@ -16,8 +16,6 @@ const ArchiveCanvas = dynamic(
 
 export default function HomePage() {
     const [, setActiveFile] = useState<ArchiveItem | null>(null);
-    const [, setActiveDrawer] = useState<DrawerType>(null);
-    const [, setActiveModal] = useState<ModalType>(null);
 
     const handleSelectCard = useCallback((item: ArchiveItem) => {
         setActiveFile(item);
@@ -26,10 +24,7 @@ export default function HomePage() {
     return (
         <main className="relative w-screen h-screen overflow-hidden">
             {/* 1. Minimal top bar: home mark · ~/pages · socials */}
-            <TopNav
-                onOpenDrawer={(drawer) => setActiveDrawer(drawer)}
-                onOpenModal={(modal) => setActiveModal(modal)}
-            />
+            <TopNav />
 
             {/* 2. 3D WebGL Spherical Canvas */}
             <ArchiveCanvas items={ARCHIVE_DATA} onSelectCard={handleSelectCard} />

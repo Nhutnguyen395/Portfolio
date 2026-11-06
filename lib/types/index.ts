@@ -24,28 +24,6 @@ export interface CardUserData {
   originalScale: number;
 }
 
-/**
- * Navigation and UI Drawer IDs
- */
-export type DrawerType = "about" | "projects" | "vault" | null;
-
-/**
- * UI Modal IDs
- */
-export type ModalType = "contact" | "lightbox" | null;
-
-/**
- * Technical project dossier entry
- */
-export interface ProjectItem {
-  readonly id: string;
-  readonly code: string;
-  readonly name: string;
-  readonly stack: string;
-  readonly description: string;
-  readonly href: string;
-}
-
 /* ------------------------------------------------------------------ */
 /* About page                                                          */
 /* ------------------------------------------------------------------ */
@@ -107,4 +85,72 @@ export interface Tool {
 export interface ToolGroup {
   readonly title: string;
   readonly tools: readonly Tool[];
+}
+
+/* ------------------------------------------------------------------ */
+/* Projects page                                                       */
+/* ------------------------------------------------------------------ */
+
+export interface ProjectImage {
+  /** path under /public, e.g. "/projects/hermes/dashboard.webp" */
+  readonly src: string;
+  readonly alt: string;
+  /** optional small label shown under the image */
+  readonly caption?: string;
+  /** CSS aspect-ratio of the frame, e.g. "16 / 10" (default) or "4 / 3" */
+  readonly aspect?: string;
+}
+
+export interface ProjectLink {
+  readonly label: string;
+  readonly href: string;
+}
+
+export interface Project {
+  /** unique, url-safe id — also used as the #anchor */
+  readonly id: string;
+  readonly name: string;
+  /** one-line summary shown under the name */
+  readonly tagline: string;
+  /** e.g. "2025" or "Spring 2025" */
+  readonly year?: string;
+  readonly stack: readonly string[];
+  readonly bullets: readonly string[];
+  readonly links?: readonly ProjectLink[];
+  /** first image is shown large; the rest sit in a 2-column grid below it */
+  readonly images: readonly ProjectImage[];
+}
+
+/* ------------------------------------------------------------------ */
+/* Journey page                                                        */
+/* ------------------------------------------------------------------ */
+
+/** One photo pinned along the trail. */
+export interface JourneyPhoto {
+  /** path under /public, e.g. "/journey/yosemite/half-dome.webp". Leave "" for a placeholder frame. */
+  readonly src: string;
+  readonly alt: string;
+  /** short handwritten-style caption under the photo */
+  readonly caption?: string;
+  /** CSS aspect-ratio of the photo, e.g. "4 / 3" (default), "3 / 4", "1 / 1" */
+  readonly aspect?: string;
+}
+
+/** A location on the trail: a "Welcome to …" checkpoint followed by its photos. */
+export interface JourneyStop {
+  /** unique, used for anchors (#yosemite) */
+  readonly id: string;
+  /** big name on the checkpoint sign */
+  readonly name: string;
+  /** smaller line above the name, e.g. "National Park" */
+  readonly kicker?: string;
+  /** e.g. "California, USA" */
+  readonly region: string;
+  /** e.g. "Summer 2024" (optional) */
+  readonly date?: string;
+  /** e.g. "37.8651° N, 119.5383° W" (optional) */
+  readonly coords?: string;
+  /** one or two sentences about the trip (optional) */
+  readonly note?: string;
+  readonly photos: readonly JourneyPhoto[];
 }
