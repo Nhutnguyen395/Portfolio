@@ -154,3 +154,21 @@ export interface JourneyStop {
   readonly note?: string;
   readonly photos: readonly JourneyPhoto[];
 }
+
+/* ------------------------------------------------------------------ */
+/* Kino page (movie tape wall)                                        */
+/* ------------------------------------------------------------------ */
+
+/** One film on the tape wall. */
+export interface Movie {
+  readonly title: string;
+  readonly year: number;
+  /** full name, shown in the detail card, e.g. "Denis Villeneuve" */
+  readonly director: string;
+  /** name printed in the "brand" spot on the tape. Defaults to the director's last name. */
+  readonly directorShort?: string;
+  /** path under /public, e.g. "/movies/blade-runner-2049.webp". Leave out until you add it — a colour fill stands in. */
+  readonly poster?: string;
+  /** "classic" = cream label with a poster peek between the reels, "poster" = poster is the whole label. Auto-picked if left out. */
+  readonly look?: "classic" | "poster";
+}

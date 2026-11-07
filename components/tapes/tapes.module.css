@@ -1,0 +1,231 @@
+/*
+ * Cassette tape drawn in CSS. Every size is in cqw (% of the tape's own width),
+ * so one tape design scales to any size: tiny on the wall, big in the detail card.
+ * The parent .frame is the size container.
+ */
+
+.frame {
+    container-type: size;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.tape {
+    --body: #1d1c1a;
+    --edge: rgba(255, 255, 255, 0.08);
+    position: absolute;
+    inset: 0;
+    border-radius: 3.6cqw;
+    background: var(--body);
+    box-shadow:
+        inset 0 0 0 1px var(--edge),
+        inset 0 2px 0 rgba(255, 255, 255, 0.06),
+        0 2px 3px rgba(0, 0, 0, 0.25),
+        0 6px 14px rgba(40, 30, 15, 0.18);
+    overflow: hidden;
+}
+
+/* corner screws */
+.tape::before,
+.tape::after {
+    content: "";
+    position: absolute;
+    top: 2.6cqw;
+    width: 2.6cqw;
+    height: 2.6cqw;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #bbb, #555);
+}
+.tape::before { left: 3cqw; }
+.tape::after { right: 3cqw; }
+
+/* ---- shells ---- */
+.shellBlack { --body: #1d1c1a; --label: #efe9da; }
+.shellCharcoal { --body: #232220; --label: #d8d2c3; }
+.shellClear {
+    --body: linear-gradient(160deg, rgba(70, 66, 58, 0.92), rgba(40, 38, 34, 0.95));
+    --label: #e7e1d1;
+}
+.shellCream { --body: #ece6d6; --label: #f7f3e8; --edge: rgba(0, 0, 0, 0.08); }
+.shellBlue { --body: #1d1c1a; --label: #7f8fa8; }
+.shellRed { --body: #1d1c1a; --label: #c8322a; }
+.shellGreen { --body: #232220; --label: #5d7f58; }
+.shellSmoke { --body: #3a3833; --label: #ebe5d5; }
+
+/* ---- label ---- */
+.label {
+    position: absolute;
+    left: 7%;
+    right: 7%;
+    top: 9%;
+    height: 62%;
+    border-radius: 1.5cqw;
+    background: var(--label, #efe9da);
+    overflow: hidden;
+}
+
+.sticker {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 30%;
+    display: flex;
+    align-items: center;
+    gap: 3cqw;
+    padding: 0 3cqw;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    background:
+        repeating-linear-gradient(transparent 0 3.6cqw, rgba(0, 0, 0, 0.05) 3.6cqw 4.1cqw),
+        #fbf8ef;
+    z-index: 2;
+}
+
+.side {
+    font-family: var(--font-stamp), sans-serif;
+    font-size: 5.1cqw;
+    color: #111;
+}
+
+.title {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--font-marker), cursive;
+    font-size: 9.7cqw;
+    line-height: 1;
+    color: #1d2a6b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transform: translateY(0.5cqw) rotate(-1deg);
+}
+
+.year {
+    font-size: 4.1cqw;
+    color: rgba(0, 0, 0, 0.5);
+}
+
+/* ---- reel window ---- */
+.window {
+    position: absolute;
+    left: 50%;
+    top: 58%;
+    width: 62%;
+    height: 36%;
+    transform: translate(-50%, -50%);
+    border-radius: 999px;
+    background: #141312;
+    box-shadow: inset 0 0 0 1cqw rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 3%;
+    z-index: 2;
+}
+
+.peek {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 34%;
+    height: 70%;
+    border-radius: 1cqw;
+    overflow: hidden;
+    background: var(--tint);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.reel {
+    position: relative;
+    z-index: 1;
+    width: 26%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle, #141312 0 22%, transparent 23%),
+        repeating-conic-gradient(#f2efe7 0 30deg, #d9d4c6 30deg 60deg);
+    box-shadow: 0 0 0 1cqw #2b2926;
+}
+.reel::after {
+    content: "";
+    position: absolute;
+    inset: 30%;
+    border-radius: 50%;
+    background: repeating-conic-gradient(#141312 0 20deg, transparent 20deg 60deg);
+}
+
+.spinning .reel {
+    animation: spin 1.6s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .spinning .reel { animation: none; }
+}
+
+.brand,
+.length {
+    position: absolute;
+    bottom: 1.5cqw;
+    font-family: var(--font-stamp), sans-serif;
+    font-size: 4.1cqw;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--brand, rgba(0, 0, 0, 0.55));
+    z-index: 2;
+}
+.brand {
+    left: 3cqw;
+    max-width: 34%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.length {
+    right: 3cqw;
+    font-size: 4.6cqw;
+}
+
+/* poster-as-label look (like the solid red CBS tapes) */
+.lookPoster .label { background: var(--tint); }
+.lookPoster .sticker { height: 26%; background: rgba(255, 255, 255, 0.88); }
+.lookPoster .brand,
+.lookPoster .length { --brand: rgba(255, 255, 255, 0.9); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }
+.labelArt {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+.labelArt::after {
+    /* darken the bottom so the director/length stay readable */
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(transparent 55%, rgba(0, 0, 0, 0.45));
+}
+
+/* ---- bottom trapezoid ---- */
+.foot {
+    position: absolute;
+    left: 18%;
+    right: 18%;
+    bottom: 0;
+    height: 20%;
+    background: rgba(255, 255, 255, 0.06);
+    clip-path: polygon(6% 0, 94% 0, 100% 100%, 0 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.shellClear .foot { background: rgba(255, 255, 255, 0.12); }
+.foot i {
+    position: absolute;
+    bottom: 30%;
+    width: 2.6cqw;
+    height: 2.6cqw;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+}
+.foot i:nth-child(1) { left: 20%; }
+.foot i:nth-child(2) { left: 32%; }
+.foot i:nth-child(3) { right: 32%; }
+.foot i:nth-child(4) { right: 20%; }

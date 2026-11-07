@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -69,23 +70,28 @@ export function TopNav() {
 
     return (
         <header
+            data-topnav
             className={
                 "fixed top-0 inset-x-0 z-30 px-5 sm:px-8 pt-5 sm:pt-7 pb-4 pointer-events-none select-none font-mono text-[11px] sm:text-xs tracking-widest uppercase transition-[background-color,border-color,backdrop-filter] duration-300 border-b " +
                 (scrolled ? "bg-gallery/85 backdrop-blur-md border-line" : "bg-transparent border-transparent")
             }
         >
             <div className="grid grid-cols-[auto_1fr] md:grid-cols-[1fr_auto_1fr] items-center gap-y-4">
-                {/* Top Left: home mark (placeholder until the final icon is chosen) */}
+                {/* Top Left: home mark — the vinyl spins while hovered. Sits halfway between the edge and ~/ABOUT on desktop. */}
                 <Link
                     href="/"
                     aria-label="Nhut Nguyen, home"
-                    className="pointer-events-auto justify-self-start text-ink hover:opacity-60 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink rounded-sm"
+                    className="group pointer-events-auto justify-self-start md:justify-self-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
                 >
-                    {/* TODO: swap this placeholder mark for the final logo/icon */}
-                    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true">
-                        <rect x="1" y="1" width="24" height="24" rx="3" stroke="currentColor" strokeWidth="1.5" />
-                        <circle cx="13" cy="13" r="3" fill="currentColor" />
-                    </svg>
+                    <Image
+                        src="/brand/vinyl-hands.png"
+                        alt=""
+                        width={50}
+                        height={50}
+                        priority
+                        draggable={false}
+                        className="block size-[50px] rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.25)] group-hover:animate-[spin_1.8s_linear_infinite] group-focus-visible:animate-[spin_1.8s_linear_infinite] motion-reduce:animate-none"
+                    />
                 </Link>
 
                 {/* Center (desktop) / second row (mobile): page links */}
@@ -96,6 +102,7 @@ export function TopNav() {
                     <PathLink label="ABOUT" href="/about" active={pathname === "/about"} />
                     <PathLink label="PROJECTS" href="/projects" active={pathname === "/projects"} />
                     <PathLink label="REISE" href="/reise" active={pathname === "/reise"} />
+                    <PathLink label="KINO" href="/kino" active={pathname === "/kino"} />
                 </nav>
 
                 {/* Top Right: socials */}
